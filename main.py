@@ -1,0 +1,5 @@
+import os
+
+from youtube_transcript_api import YoutubeTranscriptApi, TranscriptsDisabled
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_groq import GroqEmbeddings, ChatGroq
