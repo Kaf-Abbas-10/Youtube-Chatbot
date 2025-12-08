@@ -45,8 +45,6 @@ embeddings = HuggingFaceEmbeddings(
 )
 vectorstore = FAISS.from_texts(chunks, embeddings)
 
-#print(vectorstore.index_to_docstore_id)
-print(vectorstore.get_by_ids(["8a99a01f-3d59-4540-806d-cec6a7a313d0"][0]))
 
 
 # Retrieval
@@ -63,13 +61,23 @@ prompt = PromptTemplate(
         Answer ONLY from the provided transcript context.
         If the context is insufficient, just say you don't know.
         
-        (context)
+        Context: {context}
         Question: {question}
 	""",
     input_variables = ['context', 'question']
 )
 
-question = "is the topic of aliens discussed in this video? If yes then what was discussed"
+question = "is the topic of nuclear fusion discussed in this video? If yes then what was discussed"
 retrieved_docs = retriever.invoke(question)
-for docs in retrieved_docs:
-    print(docs)
+# for docs in retrieved_docs:
+#    print(docs)
+    
+context_text = "\n\n".join(doc.page_content for doc in retrieved_docs)
+print(context_text)
+
+final_prompt = prompt.format(context=context_text, question=question)
+print(final_prompt)
+
+# Generation
+answer = llm.invoke(final_prompt)
+print (answer.content)
