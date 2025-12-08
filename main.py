@@ -51,5 +51,25 @@ print(vectorstore.get_by_ids(["8a99a01f-3d59-4540-806d-cec6a7a313d0"][0]))
 
 # Retrieval
 retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 4})
-retrieved_docs = retriever.invoke("What is deepmind")
-print(retrieved_docs)
+    
+# Augmentation
+llm = ChatGroq(api_key=api_key,
+               model="llama-3.1-8b-instant"
+               )
+
+prompt = PromptTemplate(
+    template="""
+		You are a helpful assistant.
+        Answer ONLY from the provided transcript context.
+        If the context is insufficient, just say you don't know.
+        
+        (context)
+        Question: {question}
+	""",
+    input_variables = ['context', 'question']
+)
+
+question = "is the topic of aliens discussed in this video? If yes then what was discussed"
+retrieved_docs = retriever.invoke(question)
+for docs in retrieved_docs:
+    print(docs)
