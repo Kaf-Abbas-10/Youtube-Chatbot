@@ -1,5 +1,4 @@
 import os
-
 from langchain_huggingface import HuggingFaceEmbeddings
 from youtube_transcript_api import YouTubeTranscriptApi, TranscriptsDisabled
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -16,9 +15,6 @@ load_dotenv()
 api_key = os.getenv("GROQ_API_KEY")
 
 video_id = "Gfr50f6ZBvo"
-#video_id = "X0btK9X0Xnk"
-
-# Transcript Fetching
 try:
     api = YouTubeTranscriptApi()
     transcript_list = api.fetch(video_id, languages=['en'])
@@ -35,7 +31,7 @@ except Exception as e:
     if 'transcript_list' in locals() and len(transcript_list) > 0:
         print("\nAvailable attributes on transcript snippet:")
         print(dir(transcript_list[0]))
-        
+
 # Document Splitting
 splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
 chunks = splitter.split_text(transcript)
@@ -47,12 +43,17 @@ embeddings = HuggingFaceEmbeddings(
 )
 vectorstore = FAISS.from_texts(chunks, embeddings)
 
-
-
-# Retrieval
 retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 4})
-    
-# Augmentation
+
+def format_docs(retrieved_docs):
+    context_text = "\n\n".join(doc.page_content for doc in retrieved_docs)
+    return context_text
+
+parallel_chain = RunnableParallel({
+    'context': retriever | RunnableLambda(format_docs),
+    'question': RunnablePassthrough()
+})
+
 llm = ChatGroq(api_key=api_key,
                model="llama-3.1-8b-instant"
                )
@@ -69,18 +70,8 @@ prompt = PromptTemplate(
     input_variables = ['context', 'question']
 )
 
-question = "is the topic of nuclear fusion discussed in this video? If yes then what was discussed"
-retrieved_docs = retriever.invoke(question)
-# for docs in retrieved_docs:
-#    print(docs)
-    
-context_text = "\n\n".join(doc.page_content for doc in retrieved_docs)
-# print(context_text)
+parser = StrOutputParser()
 
-final_prompt = prompt.format(context=context_text, question=question)
-# print(final_prompt)
+main_chain = parallel_chain | prompt | llm | parser
 
-# Generation
-answer = llm.invoke(final_prompt)
-print (answer.content)
-
+print(main_chain.invoke("Can you summarize the video"))
