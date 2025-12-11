@@ -1,0 +1,22 @@
+{
+  "manifest_version": 3,
+  "name": "YouTube Video Chat",
+  "version": "1.0.0",
+  "description": "Chat with YouTube videos using AI",
+  "permissions": [
+    "activeTab",
+    "storage"
+  ],
+  "host_permissions": [
+    "https://www.youtube.com/*"
+  ],
+  "action": {
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://www.youtube.com/watch*"],
+      "js": ["content.js"]
+    }
+  ]
+}

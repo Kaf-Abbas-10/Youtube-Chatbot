@@ -18,3 +18,14 @@ python-dotenv
 # Machine Learning Utilities
 numpy
 scikit-learn 
+
+flask==3.0.0
+flask-cors==4.0.0
+langchain==0.1.0
+langchain-huggingface==0.0.1
+langchain-groq==0.0.1
+langchain-community==0.0.10
+youtube-transcript-api==0.6.1
+sentence-transformers==2.2.2
+faiss-cpu==1.7.4
+python-dotenv==1.0.0
